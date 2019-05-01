@@ -1,19 +1,49 @@
 # Dependencies
 import smtplib
 import getpass
+from pathlib import Path
 
 # Get Login Credentials
-from pathlib import Path
-try:
-    login_creds = Path("./login_creds")
-    if login_creds:
-        from login_creds import LoginCreds
-        login = LoginCreds()
-        email_addr = login.email_addr
-        pw = login.pw
-        name = login.name
-except:
-    print("No login file found.")
+
+def createToken(**kwargs):
+    if kwargs:
+        return kwargs['file_creds']
+    else:
+        token = dict({'name': None, 'email_addr': None, 'pw': None})
+        token.update({
+            'name': input("Enter your name: "),
+            'email_addr': input("Enter your email address: "),
+            'pw': getpass.getpass("Enter your password: ")
+        })
+        return token
+    return token
+
+
+def obtainCreds():
+    try:
+        login_creds = Path("./login_creds")
+        if login_creds:
+            from login_creds import LoginCreds
+            file_creds = LoginCreds()
+            use_file_response = None
+            while (use_file_response != 'y' and use_file_response != 'n'):
+                use_file_response = input("A login credential file for \"" + file_creds.email_addr + "\"  has been found. Would you like to use this to log in? [y/n]: ")
+                if use_file_response == 'y':
+                    token = createToken(file_creds=file_creds)
+                    return token
+                elif use_file_response == 'n':
+                    token = createToken()
+                    return token
+                else:
+                    print("Please submit a valid response.")
+            return token
+        return token
+    except:
+        print("No login credential file found.")
+    if token:
+        return token
+
+creds = obtainCreds()
 
 # Start/Configure SMTP Server
 server = smtplib.SMTP('smtp.gmail.com', 587)
@@ -22,19 +52,8 @@ server.ehlo()
 server.starttls()
 server.ehlo()
 
-# Use login credentials if they exist
-if 'email_addr' in locals():
-    send_addr = email_addr
-    send_pw = pw
-    send_name = name
-# If no creds exist, enter them
-else:
-    send_name = input("Enter your name: ")
-    send_addr = input("Enter your email: ")
-    send_pw = getpass.getpass("Enter your password: ")
-
 # Use credentials to login
-server.login(send_addr, send_pw)
+server.login(getattr(creds, 'email_addr'), getattr(creds, 'pw'))
 
 # Compose email
 rec_addr = input("Enter recipient email: ")
@@ -42,14 +61,14 @@ msg_subj = input("Enter a subject line: ")
 msg_body = input("Enter the body of your email: ")
 
 # Format input to create email
-msg = (f"""From: {send_name} <{send_addr}>
+msg = (f"""From: {getattr(creds, 'name')} <{getattr(creds, 'email_addr')}>
 To: <{rec_addr}>
 Subject: {msg_subj}
 
 {msg_body}""")
 
 # Send email
-server.sendmail(send_addr, rec_addr, msg)
+server.sendmail(getattr(creds, 'email_addr'), rec_addr, msg)
 
 # Close server
 server.quit()
