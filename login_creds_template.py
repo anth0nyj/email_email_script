@@ -1,9 +1,8 @@
-# This is a template for storing your login credentials. To use it, enter your information in the appropriate fields, and then change the filename from "login_creds_template.py" to "login_creds.py". Eventually, I may add features that generate this file for you, but until then, it's hardcoded in the first manner that came to mind.
+# This is a template for storing your login credentials. To use it, enter your information in the appropriate fields, and then change the filename from "login_creds_template.py" to "login_creds.py" (don't worry; that filename is included in the .gitgnore). Eventually, I may add features that generate this file for you, but until then, it's hardcoded.
 
-# Note: this is not a necessary step. The script itself allows you to forgo using this file entirely and enter your credentials at runtime. I just found that really tedious, and figured this was a simple fix.
+# NOTE: this is not a necessary step, rather merely a convenience. The script itself allows you to forgo using this file entirely and enter your login credentials at run time.
 
-class LoginCreds:
-    def __init__(self):
-        self.email_addr = "you@gmail.com"
-        self.pw = "yourpassword"
-        self.name = "Your Name"
+from logintoken import LoginToken
+
+login_token = LoginToken(addr='you@you.com', pw='yourpassword', name='yourname')
+
